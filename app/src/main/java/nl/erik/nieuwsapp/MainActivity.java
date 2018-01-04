@@ -14,7 +14,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.CookieSyncManager;
+import android.webkit.CookieManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.AdapterView;
@@ -24,54 +24,31 @@ import android.widget.SimpleAdapter;
 import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
-import com.rometools.rome.io.FeedException;
-import com.rometools.rome.io.SyndFeedInput;
-import com.rometools.rome.io.XmlReader;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements DownloadCallback<SyndFeed> {
 
-    //   public static final String HTTPS_WWW_NU_NL_RSS_ALGEMEEN = "https://www.nu.nl/rss/Algemeen";
-//   public static final String HTTPS_WWW_NU_NL_RSS_ALGEMEEN = "http://www.rtlnieuws.nl/service/rss/nederland/index.xml";
-//    public static final String HTTPS_WWW_NU_NL_RSS_ALGEMEEN = "https://www.ad.nl/home/rss.xml";
-//    public static final String HTTPS_WWW_NU_NL_RSS_ALGEMEEN = "https://www.telegraaf.nl/rss/";
-
-    // TODO doorlinken vanuit NRC feed faalt...
-    public static final String HTTPS_WWW_NU_NL_RSS_ALGEMEEN = "https://www.nrc.nl/rss/";
-//    public static final String HTTPS_WWW_NU_NL_RSS_ALGEMEEN = "http://feeds.nos.nl/nosnieuwsalgemeen";
-
-//
-
-
-
+    private RssChannel activeChannel;
     private NetworkFragment mNetworkFragment;
-    final static Set<String> allowedHosts = new HashSet<String>();
-
-    static {
-        allowedHosts.add("www.nu.nl");
-        allowedHosts.add("www.rtlnieuws.nl");
-        allowedHosts.add("www.ad.nl");
-        allowedHosts.add("www.telegraaf.nl");
-        allowedHosts.add("www.nrc.nl");
-        allowedHosts.add("nos.nl");
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        RssChannel nuChannel = new RssChannel("https://www.nu.nl/rss/Algemeen", "www.nu.nl");
+        RssChannel rtlChannel = new RssChannel("http://www.rtlnieuws.nl/service/rss/nederland/index.xml", "www.rtlnieuws.nl");
+        RssChannel adChannel = new RssChannel("https://www.ad.nl/home/rss.xml", "www.ad.nl", "nl_cookiewall_version=1; Domain=ad.nl; Expires=Thu, 30-Dec-2099 00:00:00 GMT; Path=/");
+        RssChannel nosChannel = new RssChannel("http://feeds.nos.nl/nosnieuwsalgemeen", "nos.nl");
+        RssChannel nrcChannel = new RssChannel("https://www.nrc.nl/rss/", "www.nrc.nl");
+
+        this.activeChannel = adChannel;
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-
-        mNetworkFragment = NetworkFragment.getInstance(getFragmentManager(), HTTPS_WWW_NU_NL_RSS_ALGEMEEN);
+        mNetworkFragment = NetworkFragment.getInstance(getFragmentManager(), activeChannel.getFeedUrl());
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -86,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
                 new FragmentManager.OnBackStackChangedListener() {
                     public void onBackStackChanged() {
                         WebView webView = findViewById(R.id.webView);
-                        if(webView.getVisibility() == WebView.VISIBLE) {
+                        if (webView.getVisibility() == WebView.VISIBLE) {
                             webView.setVisibility(WebView.INVISIBLE);
                         }
                     }
@@ -149,11 +126,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         simpleListView.setAdapter(simpleAdapter);//sets the adapter for listView
         simpleListView.invalidate();
 
-        CookieSyncManager syncManager = CookieSyncManager.createInstance(this);
-        syncManager.startSync();
-        android.webkit.CookieManager cookieManager = android.webkit.CookieManager.getInstance();
-        cookieManager.setCookie("wwww.ad.nl", "nl_cookiewall_version=1; Domain=ad.nl; Expires=Thu, 30-Dec-2099 00:00:00 GMT; Path=/");
-        syncManager.sync();
+        setCookie();
         //perform listView item click event
         simpleListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -164,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
                         new WebViewClient() {
                             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                                 String host = Uri.parse(url).getHost();
-                                return !allowedHosts.contains(host);
+                                return !activeChannel.getNewsDomain().equals(host);
                             }
                         }
                 );
@@ -172,14 +145,24 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
                 webView.getSettings().setJavaScriptEnabled(false);
                 webView.setVisibility(View.VISIBLE);
                 // NRC uses link:
-                entries.get(i).getLink();
-                webView.loadUrl(entries.get(i).getUri());
-
-
-
+                SyndEntry newsEntry = entries.get(i);
+                String url;
+                if(newsEntry.getLink() != null || !newsEntry.getLink().isEmpty()){
+                    url = newsEntry.getLink();
+                } else {
+                    url = newsEntry.getUri();
+                }
+                webView.loadUrl(url);
             }
         });
 
+    }
+
+    private void setCookie() {
+        if (activeChannel.getCookie() != null) {
+            CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.setCookie(activeChannel.getNewsDomain(), activeChannel.getCookie());
+        }
     }
 
     private void startDownload() {
