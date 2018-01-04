@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         RssChannel nosChannel = new RssChannel("http://feeds.nos.nl/nosnieuwsalgemeen", "nos.nl");
         RssChannel nrcChannel = new RssChannel("https://www.nrc.nl/rss/", "www.nrc.nl");
 
-        this.activeChannel = adChannel;
+        this.activeChannel = nuChannel;
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -119,9 +119,8 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         String[] from = {"name", "image"};//string array
         int[] to = {R.id.textView, R.id.imageView};//int array of views id's
 
-        SimpleAdapter simpleAdapter = new SimpleAdapter(this, arrayList, R.layout.list_view_items, from, to) {
-
-        };//Create object and set the parameters for simpleAdapter
+        SimpleAdapter simpleAdapter = new SimpleAdapter(this, arrayList, R.layout.list_view_items, from, to);//Create object and set the parameters for simpleAdapter
+        simpleAdapter.setViewBinder(new ImageViewBinder());
         ListView simpleListView = findViewById(R.id.news_content);
         simpleListView.setAdapter(simpleAdapter);//sets the adapter for listView
         simpleListView.invalidate();
@@ -147,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
                 // NRC uses link:
                 SyndEntry newsEntry = entries.get(i);
                 String url;
-                if(newsEntry.getLink() != null || !newsEntry.getLink().isEmpty()){
+                if (newsEntry.getLink() != null || !newsEntry.getLink().isEmpty()) {
                     url = newsEntry.getLink();
                 } else {
                     url = newsEntry.getUri();
@@ -166,11 +165,9 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
     }
 
     private void startDownload() {
-        boolean mDownloading = false;
-        if (!mDownloading && mNetworkFragment != null) {
+        if (mNetworkFragment != null) {
             // Execute the async download.
             mNetworkFragment.startDownload();
-            mDownloading = true;
         }
     }
 
@@ -183,7 +180,6 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
 
     @Override
     public void onProgressUpdate(int progressCode, int percentComplete) {
-
     }
 
     @Override

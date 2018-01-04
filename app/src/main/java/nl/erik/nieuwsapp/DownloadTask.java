@@ -4,7 +4,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 
-import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
@@ -35,12 +34,7 @@ public class DownloadTask extends AsyncTask<String, Integer, DownloadTask.Result
      */
     static class Result {
         public SyndFeed feedResult;
-        public String mResultValue;
         public Exception mException;
-
-        public Result(String resultValue) {
-            mResultValue = resultValue;
-        }
 
         public Result(Exception exception) {
             mException = exception;
@@ -78,12 +72,8 @@ public class DownloadTask extends AsyncTask<String, Integer, DownloadTask.Result
             String urlString = urls[0];
             try {
                 SyndFeed feed = new SyndFeedInput().build(new XmlReader(new URL(urlString)));
-                for (SyndEntry entry : feed.getEntries()) {
-                    System.out.println(entry.getTitle());
-                }
                 result = new Result(feed);
-
-            } catch (FeedException e) {
+            } catch (FeedException  e) {
                 result = new Result(e);
             } catch (IOException e) {
                 result = new Result(e);
