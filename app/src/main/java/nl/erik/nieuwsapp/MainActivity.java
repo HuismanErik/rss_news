@@ -122,23 +122,6 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         return super.onOptionsItemSelected(item);
     }
 
-    private static SyndFeed getFeed(String url) {
-        SyndFeed feed = null;
-        try {
-            feed = new SyndFeedInput().build(new XmlReader(new URL(url)));
-        } catch (FeedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println(feed.getTitle());
-        for (SyndEntry entry : feed.getEntries()) {
-            System.out.println(entry.getTitle());
-        }
-        return feed;
-    }
-
-
     @Override
     public void updateFromDownload(SyndFeed feed) {
         final List<SyndEntry> entries = feed.getEntries();
