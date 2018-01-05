@@ -59,17 +59,6 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
                         .setAction("Action", null).show();
             }
         });
-
-        getSupportFragmentManager().addOnBackStackChangedListener(
-                new FragmentManager.OnBackStackChangedListener() {
-                    public void onBackStackChanged() {
-                        WebView webView = findViewById(R.id.webView);
-                        if (webView.getVisibility() == WebView.VISIBLE) {
-                            webView.setVisibility(WebView.INVISIBLE);
-                        }
-                    }
-                });
-
     }
 
     @Override

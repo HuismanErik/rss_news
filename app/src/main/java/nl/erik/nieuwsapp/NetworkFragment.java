@@ -1,8 +1,10 @@
 package nl.erik.nieuwsapp;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 
@@ -42,6 +44,19 @@ public class NetworkFragment extends Fragment {
         super.onAttach(context);
         // Host Activity will handle callbacks from task.
         mCallback = (DownloadCallback) context;
+    }
+
+    /**
+     * Overrides Fragment.onAttach(Activity) this is done to support older devices
+     * @param activity
+     */
+    @Override
+    @SuppressWarnings("deprecation")
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            mCallback = (DownloadCallback) activity;
+        }
     }
 
     @Override
