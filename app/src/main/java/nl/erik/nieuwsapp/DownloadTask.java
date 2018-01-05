@@ -73,9 +73,7 @@ public class DownloadTask extends AsyncTask<String, Integer, DownloadTask.Result
             try {
                 SyndFeed feed = new SyndFeedInput().build(new XmlReader(new URL(urlString)));
                 result = new Result(feed);
-            } catch (FeedException  e) {
-                result = new Result(e);
-            } catch (IOException e) {
+            } catch (FeedException | IOException  e) {
                 result = new Result(e);
             }
         }

@@ -1,6 +1,7 @@
 package nl.erik.nieuwsapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -129,20 +130,7 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
         //perform listView item click event
         simpleListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                WebView webView = findViewById(R.id.webView);
-                webView.setWebViewClient(
-                        new WebViewClient() {
-                            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                                String host = Uri.parse(url).getHost();
-                                return !activeChannel.getNewsDomain().equals(host);
-                            }
-                        }
-                );
-                // disables javascript
-                webView.getSettings().setJavaScriptEnabled(false);
-                webView.setVisibility(View.VISIBLE);
                 // NRC uses link:
                 SyndEntry newsEntry = entries.get(i);
                 String url;
@@ -151,10 +139,17 @@ public class MainActivity extends AppCompatActivity implements DownloadCallback<
                 } else {
                     url = newsEntry.getUri();
                 }
-                webView.loadUrl(url);
+                openNewWebviewActitivity(url);
             }
         });
 
+    }
+
+    private void openNewWebviewActitivity(String url) {
+        Intent mIntent = new Intent(this, NewsItemActivity.class);
+        mIntent.putExtra("activeChannel", activeChannel);
+        mIntent.putExtra("url", url);
+        startActivity(mIntent);
     }
 
     private void setCookie() {

@@ -1,6 +1,8 @@
 package nl.erik.nieuwsapp;
 
-public class RssChannel {
+import java.io.Serializable;
+
+public class RssChannel implements Serializable {
     private final String feedUrl;
     private final String newsDomain;
     private String cookie;
